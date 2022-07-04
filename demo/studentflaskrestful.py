@@ -6,7 +6,7 @@ from flask_restful import Resource, Api
 
 client=pymongo.MongoClient("mongodb+srv://mongouser:mongopwd@cluster1.davwpcs.mongodb.net/?retryWrites=true&w=majority")
 datalist=client["mydatabase"]
-col=datalist["resigtry"]
+stu_col=datalist["registry"]
 user_db=datalist["db"]
 
 app=Flask(__name__)
@@ -15,14 +15,12 @@ api = Api(app)
 
 def auth_api(func):
     def wrapper(*args,**kwargs):
-
         print("started")
-        login=request.headers.get("x-api-key")
-        for i in user_db.find({},{"_id":0,"user":1}):
-            if i["user"]==login:
-                resp=func(*args,**kwargs)
-            else:
-                return "Unauthorised user"
+        if request.headers.get("x-api-key")=="surya":
+            resp=func(*args,**kwargs)           
+        else:
+            return "unauthorised user"
+
         print("stoped")
         return resp
         
@@ -34,7 +32,7 @@ class Students(Resource):
     def get(self):
         try:
           
-            x= col.find({},{"_id":0})
+            x= stu_col.find({},{"_id":0})
             
             return [i for i in x]
             
@@ -45,7 +43,7 @@ class Students(Resource):
     def post(self):
         try:
             stu=request.get_json()
-            col.insert_one(stu)
+            stu_col.insert_one(stu)
             return "Successfully added"
 
         except Exception as e:
@@ -53,10 +51,11 @@ class Students(Resource):
 
 
     @auth_api
-    def delete():
+    def delete(self):
         try:
-            Rno = request.get_json()
-            col.delete_one(Rno)
+            no = request.get_json()
+            print(no)
+            stu_col.delete_one({"Rno":no})
             return "deleted successfully"
         
         except Exception as e:
@@ -64,11 +63,11 @@ class Students(Resource):
 
 
     @auth_api
-    def put():
+    def put(self):
         try:
             Rno = request.args.get("Rno")
             data=request.get_json()
-            col.find_one_and_update({"Rno":Rno},{"$set":data})
+            stu_col.find_one_and_update({"Rno":Rno},{"$set":data})
             return "success"
 
 
