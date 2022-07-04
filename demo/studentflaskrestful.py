@@ -16,10 +16,12 @@ api = Api(app)
 def auth_api(func):
     def wrapper(*args,**kwargs):
         print("started")
-        if request.headers.get("x-api-key")=="surya":
-            resp=func(*args,**kwargs)           
-        else:
-            return "unauthorised user"
+        user_name=user_db.find({},{"name":1})
+        for i in user_name:
+            if request.headers.get("x-api-key")==i:
+                resp=func(*args,**kwargs)           
+            else:
+                return "unauthorised user"
 
         print("stoped")
         return resp
